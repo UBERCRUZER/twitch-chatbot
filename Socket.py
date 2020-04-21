@@ -1,6 +1,6 @@
 
 import socket
-from Settings import HOST, PORT, PASS, IDENT, CHANNEL
+from Params import HOST, PORT, PASS, IDENT, CHANNEL
 
 def openSocket():
 	
