@@ -1,6 +1,8 @@
 
 import socket
 from Params import HOST, PORT, PASS, IDENT, CHANNEL
+import time
+
 
 def openSocket():
 	
@@ -15,3 +17,4 @@ def sendMessage(s, message):
 	messageTemp = "PRIVMSG #" + CHANNEL + " :" + message
 	s.send((messageTemp + "\r\n").encode())
 	print("Sent: " + messageTemp)
+	time.sleep(1/100)
