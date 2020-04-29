@@ -5,7 +5,7 @@ import time
 
 
 class JoinChat:
-	def __init__(self, CHANNEL):
+	def __init__(self, CHANNEL, timeout=300):
 
 		self.channel = CHANNEL
 		self.s = socket.socket()
@@ -13,16 +13,8 @@ class JoinChat:
 		self.s.send(("PASS " + PASS + "\r\n").encode())
 		self.s.send(("NICK " + IDENT + "\r\n").encode())
 		self.s.send(("JOIN #" +  self.channel + "\r\n").encode())
+		self.s.settimeout(timeout)
 		
-
-	# def openSocket(self, CHANNEL):
-		
-	# 	s = socket.socket()
-	# 	s.connect((HOST, PORT))
-	# 	s.send(("PASS " + PASS + "\r\n").encode())
-	# 	s.send(("NICK " + IDENT + "\r\n").encode())
-	# 	s.send(("JOIN #" +  CHANNEL + "\r\n").encode())
-	# 	return s
 		
 	def sendMessage(self, message):
 		messageTemp = "PRIVMSG #" + self.channel + " :" + message
@@ -30,8 +22,11 @@ class JoinChat:
 		# print("Sent: " + messageTemp)
 		time.sleep(1/70)
 
+	def getIncoming(self):
+		return self.s.recv(2048).decode()
 
-
+	def pong(self):
+		self.s.send(bytes("PONG :tmi.twitch.tv\r\n", "UTF-8"))
 
 
 	def getUser(self, line):
@@ -50,16 +45,18 @@ class JoinChat:
 			Loading = True
 			while Loading:
 				readbuffer = readbuffer + self.s.recv(2048).decode()
-				print(readbuffer)
+				# print(readbuffer)
 				temp = readbuffer.split("\n")
 				readbuffer = temp.pop()
 
 				for line in temp:
-					print(line)
-					Loading = loadingComplete(line)
-			# sendMessage(s, "MrDestructoid reporting for duty!")
+					# print(line)
+					Loading = self.loadingComplete(line)
+			# self.sendMessage("MrDestructoid reporting for duty!")
+			print('Join Room Success')
 			return True
 		except:
+			print('Join Room Failure')
 			return False
 
 	def loadingComplete(self, line):
