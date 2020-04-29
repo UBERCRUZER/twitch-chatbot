@@ -1,3 +1,5 @@
 __pycache__/
 Settings.py
 Params.py
+clientID.txt
+secret.txt

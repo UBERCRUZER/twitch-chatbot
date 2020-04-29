@@ -17,4 +17,4 @@ def sendMessage(s, message):
 	messageTemp = "PRIVMSG #" + CHANNEL + " :" + message
 	s.send((messageTemp + "\r\n").encode())
 	print("Sent: " + messageTemp)
-	time.sleep(1/100)
+	time.sleep(1/70)
