@@ -11,20 +11,21 @@ class twitchAPI:
         secretFile.close()
 
         IDFile = open("clientID.txt")
-        clientID = IDFile.read()
+        self.clientID = IDFile.read()
         IDFile.close()
 
         self.BASE_URL = 'https://api.twitch.tv/helix/'
-        self.CLIENT_ID = clientID
+        # self.CLIENT_ID = self.clientID
         self.INDENT = 4
 
-        authPayload = self._getAuth(self.secret, 'client_credentials', clientID)
+        authPayload = self._getAuth(self.secret, 'client_credentials', self.clientID)
         self.bearerToken = authPayload.json()['access_token']
         timeoutDuration = authPayload.json()['expires_in']
 
-        print('Authentication Success. Expires in', timeoutDuration, 'seconds.')
+        print('Twitch API Authentication Success. Expires in', timeoutDuration, 'seconds.')
 
-        self.HEADERS = {'Authorization': 'Bearer {0}'.format(self.bearerToken)}
+        self.HEADERS = {'Authorization': 'Bearer {0}'.format(self.bearerToken),
+                        'Client-ID': '{0}'.format(self.clientID)}
 
 
     def _getAuth(self, secret, grant_type, client_ID):

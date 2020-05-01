@@ -11,18 +11,22 @@ from ChatFunctions import getUser, getMessage, joinRoom, loadingComplete, reconn
 
 # chatChannel = 'ubercruzer'
 # chatChannel = 'goofygains'
-# chatChannel = 'emandliv'
+chatChannel = 'emandliv'
 # chatChannel = 'arrowfit'
+# chatChannel = 'thestrengthathlete'
 # chatChannel = 'nikkiblackketter'
-chatChannel = 'nicoflores74'
-
+# chatChannel = 'nicoflores74'
+# chatChannel = 'calgarybarbell'
+# chatChannel = 'silentmikke'
+# chatChannel = 'gretchen'
 # chatChannel = 'tominationtime'
 # chatChannel = 'martinimonsters'
 # chatChannel = 'benrice_plgandalf'
 
 twitchAPI = twitchIntegration.twitchAPI()
+timeout = 300
 
-chatRoom = TwitchChat.JoinChat(chatChannel)
+chatRoom = TwitchChat.JoinChat(chatChannel, timeout=timeout)
 
 mydb = mysql.connector.connect(
     host=hostSQL,
@@ -34,7 +38,7 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()
 
-timeout = 300
+
 
 connected = False
 
@@ -45,11 +49,14 @@ while connected:
 
     try:
         readbuffer = readbuffer + chatRoom.getIncoming()
-    except:
-        print('socket recv error')
+    except KeyboardInterrupt:
+        print('kb interrupt. disconnecting.')
         # chatRoom = TwitchChat.JoinChat(chatChannel)
         # connected = chatRoom.joinRoom()
         connected = False
+    # except:
+    #     chatRoom = TwitchChat.JoinChat(chatChannel)
+    #     connected = chatRoom.joinRoom()
 
 
     temp = readbuffer.split("\n")
@@ -75,7 +82,9 @@ while connected:
         if len(result) == 0:
             query = twitchAPI.get_users([user], byName=True)
             response = twitchAPI.get_response(query)
+
             print('adding ' + response.json()['data'][0]['display_name'] + ' to database')
+
             for i in response.json()['data']:
                 # sql = 'SELECT * FROM persons WHERE user_id = {0}'.format(i['id'])
                 # mycursor.execute(sql)
@@ -88,7 +97,6 @@ while connected:
 
 # # # --------------------------------------- INSERT CHATROOM TABLE ---------------------------------
 
-        
         # get user ID
         sql = 'SELECT user_id FROM persons WHERE display_name = "{0}"'.format(user)
         mycursor.execute(sql)
@@ -102,8 +110,11 @@ while connected:
 
 # # # --------------------------------------- REPLIES -----------------------------------------------
 
-        if ('bot' in message.lower()) and ('you there' in message.lower()) and (user=='ubercruzer'):
-            chatRoom.sendMessage('yeah man, im here @ubercruzer')
+        if ('bot' in message.lower()) and ('you there' in message.lower()):
+            if (user=='ubercruzer'):
+                chatRoom.sendMessage('yeah man, im here @ubercruzer')
+            else:
+                chatRoom.sendMessage('leave me alone. im busy @' + user)
             break
 
         if 'you suck' in message.lower():
@@ -118,7 +129,7 @@ while connected:
                 chatRoom.sendMessage('seppuku, confirmed. i have brought shame to this channel.')
                 connected = False
             else:
-                chatRoom.sendMessage('no u @' + user)
+                chatRoom.sendMessage('thats not nice @' + user)
             break
 
         if ('go away' in message.lower()) and ('bot' in message.lower()):
@@ -129,5 +140,6 @@ while connected:
                 chatRoom.sendMessage('no u @' + user)
             break
 
-print('disconnecting from', chatChannel)
+chatRoom.disconnect()
+print('disconnected from', chatChannel)
 

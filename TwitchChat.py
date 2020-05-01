@@ -53,7 +53,7 @@ class JoinChat:
 					# print(line)
 					Loading = self.loadingComplete(line)
 			# self.sendMessage("MrDestructoid reporting for duty!")
-			print('Join Room Success')
+			print('join room', self.channel, 'success')
 			return True
 		except:
 			print('Join Room Failure')
@@ -81,3 +81,8 @@ class JoinChat:
 
 	def deEmojify(self, inputString):
 		return inputString.encode('ascii', 'ignore').decode('ascii')
+
+	def disconnect(self):
+		self.s.shutdown(socket.SHUT_RDWR)
+		self.s.close()
+		print('socket shutdown success')
