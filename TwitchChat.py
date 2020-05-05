@@ -45,12 +45,12 @@ class JoinChat:
 			Loading = True
 			while Loading:
 				readbuffer = readbuffer + self.s.recv(2048).decode()
-				# print(readbuffer)
+				print(readbuffer)
 				temp = readbuffer.split("\n")
 				readbuffer = temp.pop()
 
 				for line in temp:
-					# print(line)
+					print(line)
 					Loading = self.loadingComplete(line)
 			# self.sendMessage("MrDestructoid reporting for duty!")
 			print('join room', self.channel, 'success')
