@@ -26,10 +26,12 @@ from ChatFunctions import getUser, getMessage, joinRoom, loadingComplete, reconn
 # chatChannel = 'sevenlionsmusic'
 # chatChannel = 'pink_sparkles'
 # chatChannel = 'hafthorjulius'
-# chatChannel = 'joeyallmight'
+chatChannel = 'joeyallmight'
 # chatChannel = 'kneecoleslaw'
 # chatChannel = 'emmdeefit'
-chatChannel = 'davinityyy'
+# chatChannel = 'davinityyy'
+# chatChannel = 'timtimmadome'
+
 
 
 
@@ -93,7 +95,7 @@ while connected:
             query = twitchAPI.get_users([user], byName=True)
             response = twitchAPI.get_response(query)
 
-            # check for duplicates user ID
+            # check for name change
 
             userID = response.json()['data'][0]['id']
             sql = 'SELECT * FROM persons WHERE user_id = "{0}"'.format(userID)
@@ -111,8 +113,8 @@ while connected:
             else:
                 print('name change. modifying ' + response.json()['data'][0]['display_name'])
 
-                sql = 'UPDATE persons SET display_name = %s, WHERE user_id = %s'
-                val = (response.json()['data'][0]['display_name'], response.json()['data'][0]['id'])
+                sql = 'UPDATE persons SET display_name = %s WHERE user_id = %s'
+                val = (response.json()['data'][0]['display_name'], int(response.json()['data'][0]['id']))
                 mycursor.execute(sql, val)
                 mydb.commit()
 
