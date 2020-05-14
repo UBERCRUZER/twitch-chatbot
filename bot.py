@@ -7,38 +7,47 @@ from Params import hostSQL, userSQL, passwdSQL, databaseSQL
 import os
 import json
 import twitchIntegration
-from ChatFunctions import getUser, getMessage, joinRoom, loadingComplete, reconnect, deEmojify
+# from ChatFunctions import joinRoom, loadingComplete, reconnect
+import pandas as pd
 
-# chatChannel = 'ubercruzer'
-# chatChannel = 'goofygains'
-# chatChannel = 'emandliv'
-# chatChannel = 'arrowfit'
-# chatChannel = 'thestrengthathlete'
-# chatChannel = 'frimia'
-# chatChannel = 'nikkiblackketter'
-# chatChannel = 'nicoflores74'
-# chatChannel = 'calgarybarbell'
-# chatChannel = 'silentmikke'
-# chatChannel = 'gretchen'
-# chatChannel = 'tominationtime'
-# chatChannel = 'martinimonsters'
+
+
+# chatChannel = 'ajvie'
+chatChannel = 'arrowfit'
+# chatChannel = 'averagejoes_oc'
+# chatChannel = 'ayytrae'
 # chatChannel = 'benrice_plgandalf'
-# chatChannel = 'sevenlionsmusic'
-# chatChannel = 'pink_sparkles'
-# chatChannel = 'hafthorjulius'
-chatChannel = 'joeyallmight'
-# chatChannel = 'kneecoleslaw'
-# chatChannel = 'emmdeefit'
+# chatChannel = 'calgarybarbell'
 # chatChannel = 'davinityyy'
+# chatChannel = 'emandliv'
+# chatChannel = 'emmdeefit'
+# chatChannel = 'frimia'
+# chatChannel = 'goofygains'
+# chatChannel = 'gretchen'
+# chatChannel = 'hafthorjulius'
+# chatChannel = 'hottea'
+# chatChannel = 'joeyallmight'
+# chatChannel = 'kneecoleslaw'
+# chatChannel = 'lilredhydra'
+# chatChannel = 'lirik'
+# chatChannel = 'lizelda'
+# chatChannel = 'martinimonsters'
+# chatChannel = 'miniatureactionjesus'
+# chatChannel = 'nicoflores74'
+# chatChannel = 'nikkiblackketter'
+# chatChannel = 'pink_sparkles'
+# chatChannel = 'thestrengthathlete'
+# chatChannel = 'sevenlionsmusic'
+# chatChannel = 'silentmikke'
+# chatChannel = 'stpeach'
 # chatChannel = 'timtimmadome'
-
-
+# chatChannel = 'tominationtime'
 
 
 twitchAPI = twitchIntegration.twitchAPI()
 timeout = 300
 
-chatRoom = TwitchChat.JoinChat(chatChannel, timeout=timeout)
+chatRoom = TwitchChat.JoinChat(timeout=timeout)
 
 mydb = mysql.connector.connect(
     host=hostSQL,
@@ -54,7 +63,8 @@ mycursor = mydb.cursor()
 
 connected = False
 
-connected = chatRoom.joinRoom()
+connected = chatRoom.joinRoom(chatChannel)
+connected = chatRoom.joinRoom('ubercruzer')
 readbuffer = ""
 
 while connected:
@@ -80,9 +90,9 @@ while connected:
 
             chatRoom.pong()
             break
-        user = getUser(line)
-        message = getMessage(line)
-
+        user = chatRoom.getUser(line)
+        message = chatRoom.getMessage(line)
+        channel = chatRoom.getChannel(line)
 
         response = None
 
@@ -126,42 +136,50 @@ while connected:
         mycursor.execute(sql)
         result = mycursor.fetchall()
 
-        # insert into chat table
-        sql = 'INSERT INTO chatroom (from_ID, display_name, chat_line, chatchannel) VALUES (%s, %s, %s, %s)'
-        val = (result[0][0], user, deEmojify(message), chatChannel)
-        mycursor.execute(sql, val)
-        mydb.commit()
+        try:
+            # insert into chat table
+            sql = 'INSERT INTO chatroom (from_ID, display_name, chat_line, chatchannel) VALUES (%s, %s, %s, %s)'
+            val = (result[0][0], user, chatRoom.deEmojify(message), channel)
+            mycursor.execute(sql, val)
+            mydb.commit()
+        except:
+            connected = False
+            errorFile = pd.DataFrame(result)
+            errorFile.to_csv('dump.csv')
+
+
+
 
 # # # --------------------------------------- REPLIES -----------------------------------------------
 
         if ('bot' in message.lower()) and ('you there' in message.lower()):
             if (user=='ubercruzer'):
-                chatRoom.sendMessage('yeah man, im here @ubercruzer')
+                chatRoom.sendMessage('yeah man, im here @ubercruzer', channel)
             else:
-                chatRoom.sendMessage('leave me alone. im busy @' + user)
+                chatRoom.sendMessage('leave me alone. im busy @' + user, channel)
             break
 
         if 'you suck' in message.lower():
             if user=='ubercruzer':
-                chatRoom.sendMessage('yeah :(')
+                chatRoom.sendMessage('yeah :(', channel)
             else:
-                chatRoom.sendMessage('no u @' + user)
+                chatRoom.sendMessage('no u @' + user, channel)
             break
 
         if ('bot' in message.lower()) and ('kys' in message.lower()):
             if user=='ubercruzer':
-                chatRoom.sendMessage('seppuku, confirmed. i have brought shame to this channel.')
+                chatRoom.sendMessage('seppuku, confirmed. i have brought shame to this channel.', channel)
                 connected = False
             else:
-                chatRoom.sendMessage('thats not nice @' + user)
+                chatRoom.sendMessage('thats not nice @' + user, channel)
             break
 
         if ('go away' in message.lower()) and ('bot' in message.lower()):
             if user=='ubercruzer':
-                chatRoom.sendMessage('i see how it is. i thought we were friends.')
+                chatRoom.sendMessage('i see how it is. i thought we were friends.', channel)
                 connected = False
             else:
-                chatRoom.sendMessage('no u @' + user)
+                chatRoom.sendMessage('no u @' + user, channel)
             break
 
 chatRoom.disconnect()

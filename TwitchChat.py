@@ -5,19 +5,46 @@ import time
 
 
 class JoinChat:
-	def __init__(self, CHANNEL, timeout=300):
+	def __init__(self, timeout=300):
 
-		self.channel = CHANNEL
+		# self.channel = CHANNEL
 		self.s = socket.socket()
 		self.s.connect((HOST, PORT))
 		self.s.send(("PASS " + PASS + "\r\n").encode())
 		self.s.send(("NICK " + IDENT + "\r\n").encode())
-		self.s.send(("JOIN #" +  self.channel + "\r\n").encode())
 		self.s.settimeout(timeout)
+
+	def joinRoom(self, channel):
+		try:
+			self.s.send(("JOIN #" + channel + "\r\n").encode())
+
+			readbuffer = ""
+			Loading = True
+			while Loading:
+				readbuffer = readbuffer + self.s.recv(2048).decode()
+				# print(readbuffer)
+				temp = readbuffer.split("\n")
+				readbuffer = temp.pop()
+
+				for line in temp:
+					# print(line)
+					Loading = self.loadingComplete(line)
+			# self.sendMessage("MrDestructoid reporting for duty!")
+			print('join room', channel, 'success')
+			return True
+		except:
+			print('Join Room Failure')
+			return False
+
+	def loadingComplete(self, line):
+		if("End of /NAMES list" in line):
+			return False
+		else:
+			return True
+
 		
-		
-	def sendMessage(self, message):
-		messageTemp = "PRIVMSG #" + self.channel + " :" + message
+	def sendMessage(self, message, channel):
+		messageTemp = "PRIVMSG #" + channel + " :" + message
 		self.s.send((messageTemp + "\r\n").encode())
 		# print("Sent: " + messageTemp)
 		time.sleep(1/70)
@@ -36,34 +63,13 @@ class JoinChat:
 	def getMessage(self, line):
 		separate = line.split(":")
 		message = separate[2]
-		return message
+		return message	
+	def getChannel(self, line):
+		separate = line.split(":")
+		channel = separate[1].split('#')[1].rstrip()
+		return channel
 
 
-	def joinRoom(self):
-		try:
-			readbuffer = ""
-			Loading = True
-			while Loading:
-				readbuffer = readbuffer + self.s.recv(2048).decode()
-				print(readbuffer)
-				temp = readbuffer.split("\n")
-				readbuffer = temp.pop()
-
-				for line in temp:
-					print(line)
-					Loading = self.loadingComplete(line)
-			# self.sendMessage("MrDestructoid reporting for duty!")
-			print('join room', self.channel, 'success')
-			return True
-		except:
-			print('Join Room Failure')
-			return False
-
-	def loadingComplete(self, line):
-		if("End of /NAMES list" in line):
-			return False
-		else:
-			return True
 
 
 	def reconnect(self, interval=1, timeout=300):
