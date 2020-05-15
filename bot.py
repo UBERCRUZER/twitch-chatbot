@@ -63,8 +63,30 @@ mycursor = mydb.cursor()
 
 connected = False
 
-connected = chatRoom.joinRoom(chatChannel)
-connected = chatRoom.joinRoom('ubercruzer')
+# connected = chatRoom.joinRoom('arrowfit')
+connected = chatRoom.joinRoom('ajvie')
+connected = chatRoom.joinRoom('benrice_plgandalf')
+# connected = chatRoom.joinRoom('davinityyy')
+# connected = chatRoom.joinRoom('emandliv')
+# connected = chatRoom.joinRoom('emmdeefit')
+# connected = chatRoom.joinRoom('hapabott')
+connected = chatRoom.joinRoom('hollytwolf')
+connected = chatRoom.joinRoom('kellyleon14')
+# connected = chatRoom.joinRoom('lizelda')
+connected = chatRoom.joinRoom('martinimonsters')
+# connected = chatRoom.joinRoom('mightytins')
+connected = chatRoom.joinRoom('miss_angeliquew')
+# connected = chatRoom.joinRoom('nicoflores74')
+# connected = chatRoom.joinRoom('officialevelynclaire')
+connected = chatRoom.joinRoom('pcpatty')
+connected = chatRoom.joinRoom('pumkinwu')
+connected = chatRoom.joinRoom('stephenirl')
+# connected = chatRoom.joinRoom('timtimmadome')
+# connected = chatRoom.joinRoom('tominationtime')
+# connected = chatRoom.joinRoom('vegancarola')
+connected = chatRoom.joinRoom('yogiibutt')
+
+
 readbuffer = ""
 
 while connected:
@@ -128,24 +150,84 @@ while connected:
                 mycursor.execute(sql, val)
                 mydb.commit()
 
-
-# # # --------------------------------------- INSERT CHATROOM TABLE ---------------------------------
+# # # --------------------------------------- INSERT FOLLOWER TABLE ---------------------------------
 
         # get user ID
         sql = 'SELECT user_id FROM persons WHERE display_name = "{0}"'.format(user)
         mycursor.execute(sql)
         result = mycursor.fetchall()
+        
+        from_id = result[0][0]
 
-        try:
-            # insert into chat table
-            sql = 'INSERT INTO chatroom (from_ID, display_name, chat_line, chatchannel) VALUES (%s, %s, %s, %s)'
-            val = (result[0][0], user, chatRoom.deEmojify(message), channel)
-            mycursor.execute(sql, val)
-            mydb.commit()
-        except:
-            connected = False
-            errorFile = pd.DataFrame(result)
-            errorFile.to_csv('dump.csv')
+        if not (user == channel):
+
+            # get channel ID
+            sql = 'SELECT user_id FROM persons WHERE display_name = "{0}"'.format(channel)
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            if len(result) == 0:
+                query = twitchAPI.get_users([channel], byName=True)
+                response = twitchAPI.get_response(query)
+
+                print('adding broadcaster ' + response.json()['data'][0]['display_name'] + ' to database')
+
+                sql = 'INSERT INTO persons (user_id, display_name, view_count, broadcaster_type) VALUES (%s, %s, %s, %s)'
+                val = (response.json()['data'][0]['id'], response.json()['data'][0]['display_name'], 
+                        response.json()['data'][0]['view_count'], response.json()['data'][0]['broadcaster_type'])
+                mycursor.execute(sql, val)
+                mydb.commit()
+
+                to_id = response.json()['data'][0]['id']
+            else:
+                to_id = result[0][0]
+
+            following = True
+
+            query = twitchAPI.get_follow_date(from_id, to_id)
+            response = twitchAPI.get_response(query)
+            try:
+                followdate = response.json()['data'][0]['followed_at']
+                followdate = followdate.replace('T', ' ').replace('Z','')
+            
+            except:
+                # print('user not following')
+                following = False
+
+            # check if already in table
+            sql = 'SELECT * FROM followers WHERE from_ID = "{0}" AND to_ID = "{1}"'.format(from_id, to_id)
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            if (len(result) == 0) and (following):
+
+                sql = 'INSERT INTO followers (from_ID, to_ID, followed_at) VALUES (%s, %s, %s)'
+                val = (from_id, to_id, followdate)
+                mycursor.execute(sql, val)
+                mydb.commit()
+            # else:
+            #     if following:
+            #         print('already in database')
+        else:
+            print('broadcaster. skipping.')
+
+
+
+
+
+# # # --------------------------------------- INSERT CHATROOM TABLE ---------------------------------
+
+
+        # try:
+        # insert into chat table
+        sql = 'INSERT INTO chatroom (from_ID, display_name, chat_line, chatchannel) VALUES (%s, %s, %s, %s)'
+        val = (from_id, user, chatRoom.deEmojify(message), channel)
+        mycursor.execute(sql, val)
+        mydb.commit()
+        # except:
+        #     connected = False
+        #     errorFile = pd.DataFrame(result)
+        #     errorFile.to_csv('dump.csv')
 
 
 
@@ -183,5 +265,5 @@ while connected:
             break
 
 chatRoom.disconnect()
-print('disconnected from', chatChannel)
+print('disconnected success')
 

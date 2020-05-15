@@ -106,3 +106,6 @@ class twitchAPI:
                 else:
                     query = query + '&login=' + users[i]
         return query
+
+    def get_follow_date(self, from_id, to_id):
+        return 'users/follows?from_id={0}&to_id={1}'.format(from_id, to_id)
