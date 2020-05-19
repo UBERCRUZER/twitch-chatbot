@@ -10,38 +10,7 @@ import twitchIntegration
 # from ChatFunctions import joinRoom, loadingComplete, reconnect
 import pandas as pd
 
-
-
-# chatChannel = 'ajvie'
-chatChannel = 'arrowfit'
-# chatChannel = 'averagejoes_oc'
-# chatChannel = 'ayytrae'
-# chatChannel = 'benrice_plgandalf'
-# chatChannel = 'calgarybarbell'
-# chatChannel = 'davinityyy'
-# chatChannel = 'emandliv'
-# chatChannel = 'emmdeefit'
-# chatChannel = 'frimia'
-# chatChannel = 'goofygains'
-# chatChannel = 'gretchen'
-# chatChannel = 'hafthorjulius'
-# chatChannel = 'hottea'
-# chatChannel = 'joeyallmight'
-# chatChannel = 'kneecoleslaw'
-# chatChannel = 'lilredhydra'
-# chatChannel = 'lirik'
-# chatChannel = 'lizelda'
-# chatChannel = 'martinimonsters'
-# chatChannel = 'miniatureactionjesus'
-# chatChannel = 'nicoflores74'
-# chatChannel = 'nikkiblackketter'
-# chatChannel = 'pink_sparkles'
-# chatChannel = 'thestrengthathlete'
-# chatChannel = 'sevenlionsmusic'
-# chatChannel = 'silentmikke'
-# chatChannel = 'stpeach'
-# chatChannel = 'timtimmadome'
-# chatChannel = 'tominationtime'
+from streamerList import streamerList
 
 
 twitchAPI = twitchIntegration.twitchAPI()
@@ -60,32 +29,19 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 
-
 connected = False
 
-# connected = chatRoom.joinRoom('arrowfit')
-connected = chatRoom.joinRoom('ajvie')
-connected = chatRoom.joinRoom('benrice_plgandalf')
-# connected = chatRoom.joinRoom('davinityyy')
-# connected = chatRoom.joinRoom('emandliv')
-# connected = chatRoom.joinRoom('emmdeefit')
-# connected = chatRoom.joinRoom('hapabott')
-connected = chatRoom.joinRoom('hollytwolf')
-connected = chatRoom.joinRoom('kellyleon14')
-# connected = chatRoom.joinRoom('lizelda')
-connected = chatRoom.joinRoom('martinimonsters')
-# connected = chatRoom.joinRoom('mightytins')
-connected = chatRoom.joinRoom('miss_angeliquew')
-# connected = chatRoom.joinRoom('nicoflores74')
-# connected = chatRoom.joinRoom('officialevelynclaire')
-connected = chatRoom.joinRoom('pcpatty')
-connected = chatRoom.joinRoom('pumkinwu')
-connected = chatRoom.joinRoom('stephenirl')
-# connected = chatRoom.joinRoom('timtimmadome')
-# connected = chatRoom.joinRoom('tominationtime')
-# connected = chatRoom.joinRoom('vegancarola')
-connected = chatRoom.joinRoom('yogiibutt')
+query = twitchAPI.get_live_streamers(streamerList)
+response = twitchAPI.get_response(query)
 
+onlineList = []
+for i in response.json()['data']:
+    onlineList.append(i['user_name'].lower())
+
+for i in onlineList:
+    connected = chatRoom.joinRoom(i)
+
+connected = chatRoom.joinRoom('ubercruzer')
 
 readbuffer = ""
 
@@ -153,7 +109,7 @@ while connected:
 # # # --------------------------------------- INSERT FOLLOWER TABLE ---------------------------------
 
         # get user ID
-        sql = 'SELECT user_id FROM persons WHERE display_name = "{0}"'.format(user)
+        sql = 'SELECT * FROM persons WHERE display_name = "{0}"'.format(user)
         mycursor.execute(sql)
         result = mycursor.fetchall()
         

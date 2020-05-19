@@ -108,4 +108,13 @@ class twitchAPI:
         return query
 
     def get_follow_date(self, from_id, to_id):
-        return 'users/follows?from_id={0}&to_id={1}'.format(from_id, to_id)
+        return 'users/follows?from_id={0}&to_id={1}'.format(from_id, to_id)    
+    
+    def get_live_streamers(self, streamerList):
+
+        query = 'streams?'
+        for streamer in streamerList:
+            query = query + 'user_login=' + streamer + '&'
+
+        query = query[:-1]
+        return query
