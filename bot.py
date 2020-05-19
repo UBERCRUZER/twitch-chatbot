@@ -7,10 +7,10 @@ from Params import hostSQL, userSQL, passwdSQL, databaseSQL
 import os
 import json
 import twitchIntegration
-# from ChatFunctions import joinRoom, loadingComplete, reconnect
 import pandas as pd
 
 from streamerList import streamerList
+import datetime
 
 
 twitchAPI = twitchIntegration.twitchAPI()
@@ -37,15 +37,38 @@ response = twitchAPI.get_response(query)
 onlineList = []
 for i in response.json()['data']:
     onlineList.append(i['user_name'].lower())
+    connected = chatRoom.joinRoom(i['user_name'].lower())
 
-for i in onlineList:
-    connected = chatRoom.joinRoom(i)
-
-connected = chatRoom.joinRoom('ubercruzer')
+# connected = chatRoom.joinRoom('ubercruzer')
 
 readbuffer = ""
 
+nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+
+print('----- room join success! -----')
+
 while connected:
+
+    if datetime.datetime.now() > nextUpdate:
+        # print('updating streamers')
+        query = twitchAPI.get_live_streamers(streamerList)
+        response = twitchAPI.get_response(query)
+
+
+        for i in response.json()['data']:
+            inList = False
+
+            for j in onlineList:
+                if i['user_name'].lower() == j.lower():
+                    inList = True
+            
+            if not inList:
+                chatRoom.joinRoom(i['user_name'].lower())
+                onlineList.append(i['user_name'].lower())
+
+        nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+        print('----- update complete! -----')
+
 
     try:
         readbuffer = readbuffer + chatRoom.getIncoming()
@@ -113,8 +136,12 @@ while connected:
         mycursor.execute(sql)
         result = mycursor.fetchall()
         
-        from_id = result[0][0]
-
+        try:
+            from_id = result[0][0]
+        except IndexError:
+            print('sql return indexer error. messed up character encoding?')
+            break
+    
         if not (user == channel):
 
             # get channel ID
@@ -164,8 +191,8 @@ while connected:
             # else:
             #     if following:
             #         print('already in database')
-        else:
-            print('broadcaster. skipping.')
+        # else:
+        #     print('broadcaster. skipping.')
 
 
 
