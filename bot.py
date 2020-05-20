@@ -31,42 +31,61 @@ mycursor = mydb.cursor()
 
 connected = False
 
+# ------------------------------------------------------
+ 
 query = twitchAPI.get_live_streamers(streamerList)
 response = twitchAPI.get_response(query)
 
-onlineList = []
+watchingStreamer = []
 for i in response.json()['data']:
-    onlineList.append(i['user_name'].lower())
+    watchingStreamer.append(i['user_name'].lower())
     connected = chatRoom.joinRoom(i['user_name'].lower())
 
-# connected = chatRoom.joinRoom('ubercruzer')
+connected = chatRoom.joinRoom('ubercruzer')
+watchingStreamer.append('ubercruzer')
+
+# connected = chatRoom.joinRoom('martinimonsters')
+
+# ------------------------------------------------------
 
 readbuffer = ""
 
-nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 1)
 
 print('----- room join success! -----')
 
 while connected:
+
 
     if datetime.datetime.now() > nextUpdate:
         # print('updating streamers')
         query = twitchAPI.get_live_streamers(streamerList)
         response = twitchAPI.get_response(query)
 
-
         for i in response.json()['data']:
-            inList = False
+            currentlyWatching = False
 
-            for j in onlineList:
+            for j in watchingStreamer:
                 if i['user_name'].lower() == j.lower():
-                    inList = True
+                    currentlyWatching = True
             
-            if not inList:
+            if not currentlyWatching:
                 chatRoom.joinRoom(i['user_name'].lower())
-                onlineList.append(i['user_name'].lower())
+                watchingStreamer.append(i['user_name'].lower())
+
+        for i in watchingStreamer:
+            stillStreaming = False
+
+            for j in response.json()['data']:
+                if i.lower() == j['user_name'].lower():
+                    stillStreaming = True
+                
+            if not stillStreaming:
+                chatRoom.leaveRoom(i.lower())
+                watchingStreamer.remove(i.lower())
 
         nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+        print(watchingStreamer)
         print('----- update complete! -----')
 
 
@@ -87,10 +106,12 @@ while connected:
     
     for line in temp:
         # print(line)
-        if "PING" in line:
+        if 'PING' in line:
 
             chatRoom.pong()
             break
+
+
         user = chatRoom.getUser(line)
         message = chatRoom.getMessage(line)
         channel = chatRoom.getChannel(line)
@@ -246,6 +267,16 @@ while connected:
             else:
                 chatRoom.sendMessage('no u @' + user, channel)
             break
+        
+
+        # if ('go away' in message.lower()) and ('bot' in message.lower()):
+        #     if user=='ubercruzer':
+        #         chatRoom.leaveRoom('ubercruzer')
+        #         # connected = False
+        #     else:
+        #         chatRoom.sendMessage('no u @' + user, channel)
+        #     break
+
 
 chatRoom.disconnect()
 print('disconnected success')

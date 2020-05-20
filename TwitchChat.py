@@ -29,12 +29,36 @@ class JoinChat:
 				for line in temp:
 					# print(line)
 					Loading = self.loadingComplete(line)
-			# self.sendMessage("MrDestructoid reporting for duty!")
 			print('join room', channel, 'success')
 			return True
 		except:
 			print('Join Room Failure')
 			return False
+
+	def leaveRoom(self, channel):
+		self.s.send(("PART #" + channel + "\r\n").encode())
+
+		readbuffer = ""
+		departing = True
+		while departing:
+			readbuffer = readbuffer + self.s.recv(2048).decode()
+			# print(readbuffer)
+			temp = readbuffer.split("\n")
+			readbuffer = temp.pop()
+
+			for line in temp:
+				# print(line)
+				departing = self.departComplete(line)
+
+
+		print('exit room', channel, 'success')
+		return True
+
+	def departComplete(self, line):
+		if ('monstersbruhbot!monstersbruhbot@monstersbruhbot.tmi.twitch.tv PART #' in line):
+			return False
+		else:
+			return True
 
 	def loadingComplete(self, line):
 		if("End of /NAMES list" in line):
