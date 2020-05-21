@@ -48,7 +48,7 @@ watchingStreamer.append('ubercruzer')
 
 # ------------------------------------------------------
 
-readbuffer = ""
+readbuffer = ''
 
 nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 1)
 
@@ -84,7 +84,7 @@ while connected:
                 chatRoom.leaveRoom(i.lower())
                 watchingStreamer.remove(i.lower())
 
-        nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+        nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 3)
         print(watchingStreamer)
         print('----- update complete! -----')
 
