@@ -38,11 +38,13 @@ response = twitchAPI.get_response(query)
 
 watchingStreamer = []
 for i in response.json()['data']:
-    watchingStreamer.append(i['user_name'].lower())
     connected = chatRoom.joinRoom(i['user_name'].lower())
+    if connected:
+        watchingStreamer.append(i['user_name'].lower())
 
-connected = chatRoom.joinRoom('ubercruzer')
-watchingStreamer.append('ubercruzer')
+
+# connected = chatRoom.joinRoom('ubercruzer')
+# watchingStreamer.append('ubercruzer')
 
 # connected = chatRoom.joinRoom('martinimonsters')
 
@@ -85,8 +87,8 @@ while connected:
                 watchingStreamer.remove(i.lower())
 
         nextUpdate = datetime.datetime.now() + datetime.timedelta(minutes = 3)
-        print(watchingStreamer)
-        print('----- update complete! -----')
+        print(datetime.datetime.now(), ':', watchingStreamer)
+        print(datetime.datetime.now(), ': streamer update complete. next :', nextUpdate)
 
 
     try:
@@ -96,6 +98,10 @@ while connected:
         # chatRoom = TwitchChat.JoinChat(chatChannel)
         # connected = chatRoom.joinRoom()
         connected = False
+        break
+    except UnicodeDecodeError: 
+        print(datetime.datetime.now(), ': UnicodeDecodeError: \'utf-8\' codec can\'t decode bytes in position : unexpected end of data')
+        
     # except:
     #     chatRoom = TwitchChat.JoinChat(chatChannel)
     #     connected = chatRoom.joinRoom()
@@ -135,7 +141,7 @@ while connected:
             result = mycursor.fetchall()
 
             if len(result) == 0:
-                print('adding ' + response.json()['data'][0]['display_name'] + ' to database')
+                print(datetime.datetime.now(), ': adding ' + response.json()['data'][0]['display_name'] + ' to database')
 
                 sql = 'INSERT INTO persons (user_id, display_name, view_count, broadcaster_type) VALUES (%s, %s, %s, %s)'
                 val = (response.json()['data'][0]['id'], response.json()['data'][0]['display_name'], 
@@ -143,7 +149,7 @@ while connected:
                 mycursor.execute(sql, val)
                 mydb.commit()
             else:
-                print('name change. modifying ' + response.json()['data'][0]['display_name'])
+                print(datetime.datetime.now(), ': name change. modifying ' + response.json()['data'][0]['display_name'])
 
                 sql = 'UPDATE persons SET display_name = %s WHERE user_id = %s'
                 val = (response.json()['data'][0]['display_name'], int(response.json()['data'][0]['id']))
@@ -174,7 +180,7 @@ while connected:
                 query = twitchAPI.get_users([channel], byName=True)
                 response = twitchAPI.get_response(query)
 
-                print('adding broadcaster ' + response.json()['data'][0]['display_name'] + ' to database')
+                print(datetime.datetime.now(), ': adding broadcaster ' + response.json()['data'][0]['display_name'] + ' to database')
 
                 sql = 'INSERT INTO persons (user_id, display_name, view_count, broadcaster_type) VALUES (%s, %s, %s, %s)'
                 val = (response.json()['data'][0]['id'], response.json()['data'][0]['display_name'], 
@@ -204,19 +210,14 @@ while connected:
             result = mycursor.fetchall()
 
             if (len(result) == 0) and (following):
-
-                sql = 'INSERT INTO followers (from_ID, to_ID, followed_at) VALUES (%s, %s, %s)'
-                val = (from_id, to_id, followdate)
-                mycursor.execute(sql, val)
-                mydb.commit()
-            # else:
-            #     if following:
-            #         print('already in database')
-        # else:
-        #     print('broadcaster. skipping.')
-
-
-
+                try: 
+                    sql = 'INSERT INTO followers (from_ID, to_ID, followed_at) VALUES (%s, %s, %s)'
+                    val = (from_id, to_id, followdate)
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                except mysql.connector.errors.DataError: 
+                    print(datetime.datetime.now(), ': Incorrect datetime value')
+                    break
 
 
 # # # --------------------------------------- INSERT CHATROOM TABLE ---------------------------------

@@ -20,14 +20,22 @@ class JoinChat:
 
 			readbuffer = ""
 			Loading = True
+			retryCount = 0
 			while Loading:
 				readbuffer = readbuffer + self.s.recv(2048).decode()
 				# print(readbuffer)
 				temp = readbuffer.split("\n")
 				readbuffer = temp.pop()
-
 				for line in temp:
 					# print(line)
+					if ('PRIVMSG' in line):
+						self.s.send(("JOIN #" + channel + "\r\n").encode())
+						print('retrying', channel)
+						retryCount = retryCount + 1
+						if retryCount > 5:
+							print('join', channel, 'failure. possibly banned?')
+							return False
+							
 					Loading = self.loadingComplete(line)
 			print('join room', channel, 'success')
 			return True
@@ -61,7 +69,7 @@ class JoinChat:
 			return True
 
 	def loadingComplete(self, line):
-		if("End of /NAMES list" in line):
+		if('End of /NAMES list' in line):
 			return False
 		else:
 			return True
