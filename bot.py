@@ -43,8 +43,8 @@ for i in response.json()['data']:
         watchingStreamer.append(i['user_name'].lower())
 
 
-# connected = chatRoom.joinRoom('ubercruzer')
-# watchingStreamer.append('ubercruzer')
+connected = chatRoom.joinRoom('ubercruzer')
+watchingStreamer.append('ubercruzer')
 
 # connected = chatRoom.joinRoom('martinimonsters')
 
@@ -72,8 +72,13 @@ while connected:
                     currentlyWatching = True
             
             if not currentlyWatching:
-                chatRoom.joinRoom(i['user_name'].lower())
-                watchingStreamer.append(i['user_name'].lower())
+                connected = chatRoom.joinRoom(i['user_name'].lower())
+                if connected:
+                    watchingStreamer.append(i['user_name'].lower())
+                    connected = True
+
+                # chatRoom.joinRoom(i['user_name'].lower())
+                # watchingStreamer.append(i['user_name'].lower())
 
         for i in watchingStreamer:
             stillStreaming = False
@@ -117,10 +122,13 @@ while connected:
             chatRoom.pong()
             break
 
-
-        user = chatRoom.getUser(line)
-        message = chatRoom.getMessage(line)
-        channel = chatRoom.getChannel(line)
+        try:
+            user = chatRoom.getUser(line)
+            message = chatRoom.getMessage(line)
+            channel = chatRoom.getChannel(line)
+        except IndexError:
+            print(line)
+            break
 
         response = None
 
@@ -238,7 +246,7 @@ while connected:
 
 
 # # # --------------------------------------- REPLIES -----------------------------------------------
-
+        
         if ('bot' in message.lower()) and ('you there' in message.lower()):
             if (user=='ubercruzer'):
                 chatRoom.sendMessage('yeah man, im here @ubercruzer', channel)
@@ -246,7 +254,8 @@ while connected:
                 chatRoom.sendMessage('leave me alone. im busy @' + user, channel)
             break
 
-        if 'you suck' in message.lower():
+
+        if ('you suck' in message.lower()) and (channel == 'martinimonsters'):
             if user=='ubercruzer':
                 chatRoom.sendMessage('yeah :(', channel)
             else:

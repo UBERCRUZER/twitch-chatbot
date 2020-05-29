@@ -30,9 +30,9 @@ class JoinChat:
 					# print(line)
 					if ('PRIVMSG' in line):
 						self.s.send(("JOIN #" + channel + "\r\n").encode())
-						print('retrying', channel)
+						# print('retrying', channel)
 						retryCount = retryCount + 1
-						if retryCount > 5:
+						if retryCount > 3:
 							print('join', channel, 'failure. possibly banned?')
 							return False
 							
